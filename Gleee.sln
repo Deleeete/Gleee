@@ -21,7 +21,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GleeeTest", "GleeeTest\Glee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GleeeHook", "GleeeHook\GleeeHook.csproj", "{6DF68FEB-47D3-4556-9FD6-7CF49128D9DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GleeeAsm", "GleeeAsm\GleeeAsm.csproj", "{7B8F114B-A4F9-4129-8D82-771C648216BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GleeeAssembly", "GleeeAssembly\GleeeAssembly.csproj", "{7B8F114B-A4F9-4129-8D82-771C648216BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GleeeShellcode", "GleeeShellcode\GleeeShellcode.csproj", "{416F33C8-AFB5-4CB1-9FC7-A1673BAFB988}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +71,10 @@ Global
 		{7B8F114B-A4F9-4129-8D82-771C648216BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B8F114B-A4F9-4129-8D82-771C648216BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B8F114B-A4F9-4129-8D82-771C648216BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{416F33C8-AFB5-4CB1-9FC7-A1673BAFB988}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{416F33C8-AFB5-4CB1-9FC7-A1673BAFB988}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{416F33C8-AFB5-4CB1-9FC7-A1673BAFB988}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{416F33C8-AFB5-4CB1-9FC7-A1673BAFB988}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
