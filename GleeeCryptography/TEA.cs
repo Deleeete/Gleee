@@ -1,18 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
+using System.Security.Cryptography;
 
-namespace Gleee.Cryptography
+namespace Gleee.Cryptography.Algorithms
 {
     /// <summary>
     /// TEA算法类
     /// </summary>
-    public class TEA
+    public class TEA : IBlockEncryption
     {
+        private static readonly RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+        
         /// <summary>
         /// TEA倍数常数，默认为0x9e3779b9
         /// </summary>
         public uint Delta { get; private set; } = 0x9e3779b9;
+        /// <summary>
+        /// 循环次数。默认为32
+        /// </summary>
+        public int N { get; set; } = 32;
+
+        //接口实现
+        public int BlockSize { get; set; } = sizeof(uint) * 2;
+        public void Randomizer(byte[] buffer) => rng.GetBytes(buffer);
+        public byte[] Padder(byte[] input)
+        {
+            int mod = input.Length % BlockSize;
+            if (mod != 0)
+            {
+                var list = input.ToList();
+                for (int i = 0; i < BlockSize - mod; i++)
+                {
+                    list.Add(0x00);
+                }
+                return list.ToArray();
+            }
+            else return (byte[])input.Clone();
+        }
+        public void Encryptor(byte[] bin, int plain_index, byte[] key)
+        {
+            uint y = BitConverter.ToUInt32(bin, plain_index);
+            uint z = BitConverter.ToUInt32(bin, plain_index + sizeof(uint));
+
+            uint a = BitConverter.ToUInt32(key, 0);
+            uint b = BitConverter.ToUInt32(key, sizeof(uint));
+            uint c = BitConverter.ToUInt32(key, 2 * sizeof(uint));
+            uint d = BitConverter.ToUInt32(key, 3 * sizeof(uint));
+
+            uint sum = 0;
+            for (int i = 0; i < N; i++)
+            {
+                sum += Delta;
+                y += ((z << 2) + a) ^ (z + sum) ^ ((z >> 7) + b);
+                z += ((y << 2) + c) ^ (y + sum) ^ ((y >> 7) + d);
+            }
+            BitConverter.GetBytes(y).CopyTo(bin, plain_index);
+            BitConverter.GetBytes(z).CopyTo(bin, plain_index + sizeof(uint));
+        }
+        public void Decryptor(byte[] bin, int cipher_index, byte[] key)
+        {
+            uint y = BitConverter.ToUInt32(bin, cipher_index);
+            uint z = BitConverter.ToUInt32(bin, cipher_index + sizeof(uint));
+
+            uint a = BitConverter.ToUInt32(key, 0);
+            uint b = BitConverter.ToUInt32(key, sizeof(uint));
+            uint c = BitConverter.ToUInt32(key, 2 * sizeof(uint));
+            uint d = BitConverter.ToUInt32(key, 3 * sizeof(uint));
+
+            uint sum = (uint)(Delta * N);
+            //Debug.Print($"sum init = {sum:x4}");
+            for (int i = 0; i < N; i++)
+            {
+                z -= ((y << 2) + c) ^ (y + sum) ^ ((y >> 7) + d);
+                y -= ((z << 2) + a) ^ (z + sum) ^ ((z >> 7) + b);
+                sum -= Delta;
+            }
+            BitConverter.GetBytes(y).CopyTo(bin, cipher_index);
+            BitConverter.GetBytes(z).CopyTo(bin, cipher_index + sizeof(uint));
+        }
 
         public TEA() { }
         public TEA(uint delta)
@@ -64,7 +130,6 @@ namespace Gleee.Cryptography
                 y += ((z << 2) + a) ^ (z + sum) ^ ((z >> 7) + b);
                 z += ((y << 2) + c) ^ (y + sum) ^ ((y >> 7) + d);
             }
-            Debug.Print($"delta = {Delta:x4}\tsum = {sum:x4}");
             return GetBytes(y, z);
         }
         /// <summary>
@@ -93,7 +158,6 @@ namespace Gleee.Cryptography
                 y += ((z << 2) + a) ^ (z + sum) ^ ((z >> 7) + b);
                 z += ((y << 2) + c) ^ (y + sum) ^ ((y >> 7) + d);
             }
-            Debug.Print($"delta = {Delta:x4}\tsum = {sum:x4}");
             return GetBytes(y, z);
         }
         /// <summary>
@@ -201,5 +265,6 @@ namespace Gleee.Cryptography
             bin.AddRange(BitConverter.GetBytes(b));
             return bin.ToArray();
         }
+
     }
 }

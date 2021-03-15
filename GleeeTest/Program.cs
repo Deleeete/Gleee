@@ -3,10 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using Gleee.Cryptography;
+using Gleee.Cryptography.Algorithms;
 using Gleee.Utils.Extension;
-using Gleee.Cryptography.EncrptionModes;
 
 namespace GleeeTest
 {
@@ -17,31 +16,46 @@ namespace GleeeTest
             byte[] plain = Encoding.ASCII.GetBytes("Never gonna give you up never gonna get you down");
             byte[] key = "abcd12344321dcbadeadbeef12345678".ToByteArray();
             TEA tea = new TEA();
-            TEA teacc = new TEA(0xcccccccc);
-            CBC cbc = new CBC(
+            TEA tcc = new TEA(0xcccccccc);
+            EncryptionMode cbc = new EncryptionMode(
                 sizeof(uint) * 2,
                 (p, i, k) => tea.Encryptor(p, i, k, 0),
                 (c, i, k) => tea.Decryptor(c, i, k, 0)
-                ) ;
-            CBC cbccc = new CBC(
-                sizeof(uint) * 2,
-                (p, i, k) => teacc.Encryptor(p, i, k, 0),
-                (c, i, k) => teacc.Decryptor(c, i, k, 0)
                 );
-            var cipher = cbc.Encrypt(out byte[] iv, plain, key);
-            var ciphercc = cbccc.Encrypt(out byte[] ivcc, plain, key);
-            Console.WriteLine($"CBC: {cipher.ToHexString()}");
-            Console.WriteLine($"iv: {iv.ToHexString()}\n");
-            Console.WriteLine($"CCC: {ciphercc.ToHexString()}");
-            Console.WriteLine($"iv: {ivcc.ToHexString()}\n");
-            var dc = cbc.Decrypt(out iv, cipher, key);
-            var dccc = cbccc.Decrypt(out ivcc, ciphercc, key);
-            Console.WriteLine($"DCBC: {dc.ToHexString()}");
-            Console.WriteLine($"iv: {iv.ToHexString()}\n");
-            Console.WriteLine($"DCCC: {dccc.ToHexString()}");
-            Console.WriteLine($"iv: {ivcc.ToHexString()}\n\n");
-            Console.WriteLine($"dcbc_text: {Encoding.ASCII.GetString(dc)}");
-            Console.WriteLine($"dccc_text: {Encoding.ASCII.GetString(dccc)}");
+            EncryptionMode cbccc = new EncryptionMode(
+                sizeof(uint) * 2,
+                (p, i, k) => tcc.Encryptor(p, i, k, 0),
+                (c, i, k) => tcc.Decryptor(c, i, k, 0)
+                );
+            var fc = cbc.EncryptCBC(out byte[] fciv, plain, key);
+            var fcc = cbccc.EncryptCBC(out byte[] fcciv, plain, key);
+            var ic = tea.EncryptCBC(out byte[] iciv, plain, key);
+            var icc = tcc.EncryptCBC(out byte[] icciv, plain, key);
+            Console.WriteLine($"函数式密文: {fc.ToHexString()}");
+            Console.WriteLine($"iv: {fciv.ToHexString()}\n");
+            Console.WriteLine($"函数式改C密文: {fcc.ToHexString()}");
+            Console.WriteLine($"iv: {fcciv.ToHexString()}\n");
+            Console.WriteLine($"接口密文: {ic.ToHexString()}");
+            Console.WriteLine($"iv: {iciv.ToHexString()}\n");
+            Console.WriteLine($"接口改C密文: {icc.ToHexString()}");
+            Console.WriteLine($"iv: {icciv.ToHexString()}\n");
+            var dfc = cbc.DecryptCBC(fciv, fc, key);
+            var dfcc = cbccc.DecryptCBC(fcciv, fcc, key);
+            var dic = tea.DecryptCBC(iciv, ic, key);
+            var dicc = tcc.DecryptCBC(icciv, icc, key);
+            Console.WriteLine($"函数式明文: {dfc.ToHexString()}");
+            Console.WriteLine($"iv: {fciv.ToHexString()}\n");
+            Console.WriteLine($"函数式改C明文: {dfcc.ToHexString()}");
+            Console.WriteLine($"iv: {fcciv.ToHexString()}\n\n");
+            Console.WriteLine($"接口明文: {dic.ToHexString()}");
+            Console.WriteLine($"iv: {iciv.ToHexString()}\n");
+            Console.WriteLine($"接口改C明文: {dicc.ToHexString()}");
+            Console.WriteLine($"iv: {icciv.ToHexString()}\n");
+
+            Console.WriteLine($"函数式_text: {Encoding.ASCII.GetString(dfc)}");
+            Console.WriteLine($"函数式改C_text: {Encoding.ASCII.GetString(dfcc)}");
+            Console.WriteLine($"接口_text: {Encoding.ASCII.GetString(dic)}");
+            Console.WriteLine($"接口改C_text: {Encoding.ASCII.GetString(dicc)}");
             Console.ReadKey();
         }
     }

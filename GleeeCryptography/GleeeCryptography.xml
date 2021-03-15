@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GleeeCryptography</name>
+    </assembly>
+    <members>
+        <member name="T:Gleee.Cryptography.EncryptionMode">
+            <summary>
+            分组加密算法类，用函数式方法实现
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.EncryptionMode.BlockSize">
+            <summary>
+            明文块长度
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.EncryptionMode.InitializeVector">
+            <summary>
+            初始向量
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.EncryptionMode.Encryptor">
+            <summary>
+            加密器。函数签名为void Encryptor(byte[] plain, int index, byte[] key)
+            其中，plain是包含明文的字节数组；index是明文在字节数组中的起点；key是密钥数组
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.EncryptionMode.Decryptor">
+            <summary>
+            解密器。函数签名为void Decryptor(byte[] cipher, int index, byte[] key)
+            其中，cipher是包含密文的字节数组；index是密文在字节数组中的起点；key是密钥数组
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.EncryptionMode.Padder">
+            <summary>
+            获取或设置该算法使用的填充器。函数签名为byte[] Padder(byte[] input)
+            其中，input为需要填充的原始字节数组。
+            这个函数需要将input填充为PlainBlockSize的整数倍并返回。
+            如果这个值为null，算法将调用默认的填充器，后者使用0x00填充末尾。
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.EncryptionMode.Randomizer">
+            <summary>
+            获取或设置该算法使用的随机数发生器。函数签名为void Randomizer(byte[] input)
+            其中，input为需要随机化的原始字节数组
+            如果这个值为null，算法将调用默认的随机数生成器System.Security.Cryptography.RNGCryptoServiceProvider。
+            </summary>
+        </member>
+        <member name="M:Gleee.Cryptography.EncryptionMode.EncryptCBC(System.Byte[]@,System.Byte[],System.Byte[])">
+            <summary>
+            以CBC模式加密明文二进制数组
+            </summary>
+            <param name="iv">输出本次加密使用的初始向量。算法会使用Randomizer成员初始化这个数组</param>
+            <param name="plain">明文</param>
+            <param name="key">密钥</param>
+            <returns>加密后的数据块（不包括初始向量）</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.EncryptionMode.DecryptCBC(System.Byte[],System.Byte[],System.Byte[])">
+            <summary>
+            以CBC模式解密密文二进制数组
+            </summary>
+            <param name="iv">初始向量。用来保存解密最后一个数据块得到的初始向量</param>
+            <param name="cipher">密文</param>
+            <param name="key">密钥</param>
+            <returns>解密后的数据块</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.EncryptionMode.EncryptEBC(System.Byte[],System.Byte[])">
+            <summary>
+            以EBC模式加密明文二进制数组
+            </summary>
+            <param name="plain">明文</param>
+            <param name="key">密钥</param>
+            <returns>密文</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.EncryptionMode.DecryptEBC(System.Byte[],System.Byte[])">
+            <summary>
+            以EBC模式解密密文二进制数组
+            </summary>
+            <param name="cipher">密文</param>
+            <param name="key">密钥</param>
+            <returns>明文</returns>
+        </member>
+        <member name="T:Gleee.Cryptography.IBlockEncryption">
+            <summary>
+            分组加密算法接口
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.IBlockEncryption.BlockSize">
+            <summary>
+            分组长度，单位为字节
+            </summary>
+        </member>
+        <member name="M:Gleee.Cryptography.IBlockEncryption.Randomizer(System.Byte[])">
+            <summary>
+            随机化器。用于在CBC模式中生成初始向量
+            </summary>
+            <param name="buffer">缓冲区</param>
+        </member>
+        <member name="M:Gleee.Cryptography.IBlockEncryption.Padder(System.Byte[])">
+            <summary>
+            填充器。用于补齐数据长度至BlockSize的整数倍
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Gleee.Cryptography.IBlockEncryption.Encryptor(System.Byte[],System.Int32,System.Byte[])">
+            <summary>
+            加密器。以块为单位，使用密钥key，加密bin中指定位置起始的数据。
+            加密结果需要直接覆写至相应的明文数据块。
+            </summary>
+            <param name="bin">包含明文的字节数组</param>
+            <param name="plain_index">起始索引</param>
+            <param name="key">密钥数据</param>
+        </member>
+        <member name="M:Gleee.Cryptography.IBlockEncryption.Decryptor(System.Byte[],System.Int32,System.Byte[])">
+            <summary>
+            解密器。以块为单位，使用密钥key，解密bin中指定位置起始的数据。
+            解密结果需要直接覆写至相应的密文数据块。
+            </summary>
+            <param name="bin">包含密文的字节数组</param>
+            <param name="cipher_index">起始索引</param>
+            <param name="key">密钥数据</param>
+        </member>
+        <member name="T:Gleee.Cryptography.EncrytionModes">
+            <summary>
+            分组加密算法接口扩展
+            </summary>
+        </member>
+        <member name="M:Gleee.Cryptography.EncrytionModes.EncryptCBC(Gleee.Cryptography.IBlockEncryption,System.Byte[]@,System.Byte[],System.Byte[])">
+            <summary>
+            以CBC模式加密明文二进制数组
+            </summary>
+            <param name="iv">输出本次加密使用的初始向量。算法会使用Randomizer成员初始化这个数组</param>
+            <param name="plain">明文</param>
+            <param name="key">密钥</param>
+            <returns>加密后的数据块（不包括初始向量）</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.EncrytionModes.DecryptCBC(Gleee.Cryptography.IBlockEncryption,System.Byte[],System.Byte[],System.Byte[])">
+            <summary>
+            以CBC模式解密密文二进制数组
+            </summary>
+            <param name="iv">初始向量。用于解密第一个数据块</param>
+            <param name="cipher">密文</param>
+            <param name="key">密钥</param>
+            <returns>解密后的数据块（不包括初始向量）</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.EncrytionModes.EncryptEBC(Gleee.Cryptography.IBlockEncryption,System.Byte[],System.Byte[])">
+            <summary>
+            以EBC模式加密明文二进制数组
+            </summary>
+            <param name="plain">明文</param>
+            <param name="key">密钥</param>
+            <returns>密文</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.EncrytionModes.DecryptEBC(Gleee.Cryptography.IBlockEncryption,System.Byte[],System.Byte[])">
+            <summary>
+            以EBC模式解密密文二进制数组
+            </summary>
+            <param name="cipher">密文</param>
+            <param name="key">密钥</param>
+            <returns>明文</returns>
+        </member>
+        <member name="T:Gleee.Cryptography.Algorithms.TEA">
+            <summary>
+            TEA算法类
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.Algorithms.TEA.Delta">
+            <summary>
+            TEA倍数常数，默认为0x9e3779b9
+            </summary>
+        </member>
+        <member name="P:Gleee.Cryptography.Algorithms.TEA.N">
+            <summary>
+            循环次数。默认为32
+            </summary>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.EncryptUint(System.UInt32[],System.UInt32[])">
+            <summary>
+            加密一个8字节密文块。循环32次。密文块和密钥块均以uint数组形式提供。
+            </summary>
+            <param name="plain">密文块</param>
+            <param name="key">密钥块</param>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.Encryptor(System.Byte[],System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            加密一个8字节密文块，循环次数为32。密文和密钥均来源于字节数组，分别由各自的索引指定起始点。
+            </summary>
+            <param name="n">TEA加密器的循环次数</param>
+            <param name="plain">保存有密文块的字节数组</param>
+            <param name="plain_index">密文块的起始索引</param>
+            <param name="key">保存有密钥块的字节数组</param>
+            <param name="key_index">密钥块的起始索引</param>
+            <returns>加密后的字节数组</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.Encryptor(System.Int32,System.Byte[],System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            加密一个8字节密文块，循环次数为n。密文和密钥均来源于字节数组，分别由各自的索引指定起始点。
+            </summary>
+            <param name="n">TEA加密器的循环次数</param>
+            <param name="plain">保存有密文块的字节数组</param>
+            <param name="plain_index">密文块的起始索引</param>
+            <param name="key">保存有密钥块的字节数组</param>
+            <param name="key_index">密钥块的起始索引</param>
+            <returns>加密后的字节数组</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.Encryptor(System.Int32,System.Byte[],System.Byte[])">
+            <summary>
+            加密一个8字节密文块，循环次数为n。密文和密钥均来源于字节数组，且起始于索引0。
+            </summary>
+            <param name="n">TEA加密器的循环次数</param>
+            <param name="plain">保存有密文块的字节数组</param>
+            <param name="key">保存有密钥块的字节数组</param>
+            <returns>加密后的字节数组</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.DecryptUint(System.UInt32[],System.UInt32[])">
+            <summary>
+            解密一个8字节密文块。循环32次。密文块和密钥块均以uint数组形式提供。
+            </summary>
+            <param name="plain">密文块</param>
+            <param name="key">密钥块</param>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.Decryptor(System.Byte[],System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            解密一个8字节密文块，循环次数为32。密文和密钥均来源于字节数组，分别由各自的索引指定起始点。
+            </summary>
+            <param name="n">TEA解密器的循环次数</param>
+            <param name="cipher">保存有密文块的字节数组</param>
+            <param name="cipher_index">密文块的起始索引</param>
+            <param name="key">保存有密钥块的字节数组</param>
+            <param name="key_index">密钥块的起始索引</param>
+            <returns>解密后的字节数组</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.Decryptor(System.Int32,System.Byte[],System.Int32,System.Byte[],System.Int32)">
+            <summary>
+            解密一个8字节密文块，循环次数为n。密文和密钥均来源于字节数组，分别由各自的索引指定起始点。
+            </summary>
+            <param name="n">TEA解密器的循环次数</param>
+            <param name="cipher">保存有密文块的字节数组</param>
+            <param name="cipher_index">密文块的起始索引</param>
+            <param name="key">保存有密钥块的字节数组</param>
+            <param name="key_index">密钥块的起始索引</param>
+            <returns>解密后的字节数组</returns>
+        </member>
+        <member name="M:Gleee.Cryptography.Algorithms.TEA.Decryptor(System.Int32,System.Byte[],System.Byte[])">
+            <summary>
+            加密一个8字节密文块，循环次数为n。密文和密钥均来源于字节数组，且起始于索引0。
+            </summary>
+            <param name="n">TEA加密器的循环次数</param>
+            <param name="plain">保存有密文块的字节数组</param>
+            <param name="key">保存有密钥块的字节数组</param>
+            <returns>加密后的字节数组</returns>
+        </member>
+    </members>
+</doc>
