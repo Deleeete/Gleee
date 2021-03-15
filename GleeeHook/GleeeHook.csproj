@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\GleeeHook.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,9 +43,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Hook.cs" />
-    <Compile Include="HookStructs.cs" />
+    <Compile Include="InlineHook.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GleeeShellcode\GleeeShellcode.csproj">
+      <Project>{416f33c8-afb5-4cb1-9fc7-a1673bafb988}</Project>
+      <Name>GleeeShellcode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GleeeWin32\GleeeWin32.csproj">
+      <Project>{4ba09e47-7e0c-43f1-ae36-c809ad911e7d}</Project>
+      <Name>GleeeWin32</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

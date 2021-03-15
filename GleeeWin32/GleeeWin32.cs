@@ -2,11 +2,10 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
-using static Gleee.Win32.Struct;
 
 namespace Gleee.Win32
 {
-    public static class CustomFunction
+    public static class Win32Wrapper
     {
         public static Rectangle GetClientRectangle(IntPtr handle)
         {
@@ -54,7 +53,7 @@ namespace Gleee.Win32
             [DllImport("user32.dll", SetLastError = true)]
             public static extern bool ClientToScreen(IntPtr hWnd, out Point lpPoint);
             [DllImport("user32.dll", SetLastError = true)]
-            public static extern bool GetClientRect(IntPtr hWnd, out Struct.Rect lpRect);
+            public static extern bool GetClientRect(IntPtr hWnd, out Rect lpRect);
             [DllImport("user32.dll", EntryPoint = "ScreenToClient")]
             public static extern bool ScreenToClient(IntPtr hwnd, ref Point pt);
             [DllImport("user32.dll")]
@@ -98,31 +97,87 @@ namespace Gleee.Win32
     {
         [DllImport("psapi.dll", SetLastError = true, EntryPoint = "GetModuleInformation")]
         public static extern bool GetModuleInformation(IntPtr hProcess, IntPtr hDllHandle, ref ModuleInfo Mdl_Info, int dwSizeOfModuleInfo);
+        [DllImport("psapi.dll", SetLastError = true)]
+        public static extern int EnumProcessModules(IntPtr hProcess, [Out] IntPtr lphModule, uint cb, out uint lpcbNeeded);
+        [DllImport("psapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern uint GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] StringBuilder lpBaseName, uint nSize);
+        [DllImport("psapi.dll", SetLastError = true)]
+        static extern uint GetProcessImageFileName(IntPtr hProcess, [Out] StringBuilder lpImageFileName, [In][MarshalAs(UnmanagedType.U4)] int nSize);
     }
     public static class Kernel32
     {
-        [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "GetLastError")]
-        public static extern int GetLastError();
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern void GetSystemInfo(ref SystemInfo Info);
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto, EntryPoint = "K32EnumProcessModules")]
+        public static extern bool EnumProcessModules(IntPtr hProcess, [Out] IntPtr lphModule, uint cb, out uint lpcbNeeded);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [PreserveSig]
+        public static extern uint GetModuleFileName([In] IntPtr hModule, [Out] StringBuilder lpFilename, [In][MarshalAs(UnmanagedType.U4)] int nSize);
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi, EntryPoint = "K32EnumProcessModulesA")]
+        public static extern uint GetModuleFileNameExA(IntPtr hProcess, IntPtr hModule, [Out] StringBuilder lpBaseName, uint nSize);
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "K32EnumProcessModulesW")]
+        public static extern uint GetModuleFileNameExW(IntPtr hProcess, IntPtr hModule, [Out] StringBuilder lpBaseName, uint nSize);
         [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "K32GetModuleInformation")]
         public static extern bool GetModuleInformation(IntPtr hProcess, IntPtr hDllHandle, ref ModuleInfo Mdl_Info, int dwSizeOfModuleInfo);
-        [DllImport("kernel32.dll", SetLastError = true, EntryPoint ="LoadLibrary")]
-        public static extern IntPtr LoadLibrary(string lpLibName);
-        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true, EntryPoint = "GetProcAddress")]
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr CreateEvent(IntPtr lpEventAttributes, bool bManualReset, bool bInitialState, IntPtr lpName);
+        [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "GetLastError")]
+        public static extern int GetLastError();
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern void GetSystemInfo(IntPtr lpSystemInfo);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern int SuspendThread(IntPtr hThread);
+
+        [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "LoadLibraryA", CharSet = CharSet.Ansi)]
+        public static extern IntPtr LoadLibraryA(string lpLibName);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, LoadLibraryFlags dwFlags);
+        [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "LoadLibraryW", CharSet = CharSet.Unicode)]
+        public static extern IntPtr LoadLibraryW(string lpLibName);
+
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true, EntryPoint = "GetProcAddress")]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-        [DllImport("kernel32", CharSet = CharSet.Ansi, SetLastError = true, EntryPoint = "GetProcAddress")]
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi, EntryPoint = "GetProcAddress")]
         public static extern IntPtr GetProcAddressOrdinal(IntPtr hModule, IntPtr procName);
+
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out, MarshalAs(UnmanagedType.AsAny)] object lpBuffer, int dwSize, out int lpNumberOfBytesRead);
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out int lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll")]
+        public static extern bool VirtualQuery(IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
+        [DllImport("kernel32.dll")]
+        public static extern bool VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
+        [DllImport("kernel32.dll")]
+        public static extern bool VirtualQuery(IntPtr lpAddress, out MemoryBasicInfomation lpBuffer, uint dwLength);
+        [DllImport("kernel32.dll")]
+        public static extern bool VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MemoryBasicInfomation lpBuffer, uint dwLength);
+
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr VirtualAlloc(IntPtr lpAddress, IntPtr dwSize, int flAllocationType, int flProtect);
+        public static extern IntPtr VirtualAlloc(IntPtr lpAddress, int dwSize, AllocationType flAllocationType, PageProtection flProtect);
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, int dwsize, int flAllocationType, int flProtect);
+        public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, int dwsize, AllocationType flAllocationType, PageProtection flProtect);
+
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool VirtualProtect(IntPtr lpAddress, int dwSize, int flNewProtect, ref int lpflOldProtect);
+        public static extern bool VirtualProtect(IntPtr lpAddress, int dwSize, PageProtection flNewProtect, ref int lpflOldProtect);
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr CreateEvent(IntPtr lpEventAttributes, bool bManualReset, bool bInitialState, IntPtr lpName);
+        public static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress, int dwSize, PageProtection flNewProtect, ref int lpflOldProtect);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr GetCurrentProcess();
+        [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "K32GetProcessImageFileNameA", CharSet = CharSet.Ansi)]
+        public static extern bool GetProcessImageFileNameA(IntPtr hProcess, [Out] StringBuilder lpImageFileName, [In][MarshalAs(UnmanagedType.U4)] int nSize);
+        [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "K32GetProcessImageFileNameW", CharSet = CharSet.Unicode)]
+        public static extern bool GetProcessImageFileNameW(IntPtr hProcess, [Out] StringBuilder lpImageFileName, [In][MarshalAs(UnmanagedType.U4)] int nSize);
+    }
+    public static class MsCorEE
+    {
+        [DllImport("mscoree.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr CorBindToRuntimeEx(string pwszVersion, string pwszBuildFlavor, StartupFlags startupFlags, Guid rclsid, Guid riid, out IntPtr pClrHost);
     }
     public static class NtosKrnl
     {
@@ -136,8 +191,26 @@ namespace Gleee.Win32
         [DllImport("gdi32.dll")]
         public static extern bool Rectangle(IntPtr hdc, IntPtr lpRect);
     }
-    public static class Macro
+    public static class Win32Const
     {
+        public static Guid CLSID_CLRRuntimeHost = new Guid(0x90F1A06E, 0x7712, 0x4762, 0x86, 0xB5, 0x7A, 0x5E, 0xBA, 0x6B, 0xDB, 0x02);
+        public static Guid IID_ICLRRuntimeHost = new Guid(0x90F1A06C, 0x7712, 0x4762, 0x86, 0xB5, 0x7A, 0x5E, 0xBA, 0x6B, 0xDB, 0x02);
+        public static Guid CLSID_CLRStrongName = new Guid(0xB79B0ACD, 0xF5CD, 0x409b, 0xB5, 0xA5, 0xA1, 0x62, 0x44, 0x61, 0x0B, 0x92);
+        public static Guid IID_ICLRMetaHost = new Guid(0xD332DB9E, 0xB9B3, 0x4125, 0x82, 0x07, 0xA1, 0x48, 0x84, 0xF5, 0x32, 0x16);                 
+        public static Guid CLSID_CLRMetaHost = new Guid(0x9280188d, 0xe8e, 0x4867, 0xb3, 0xc, 0x7f, 0xa8, 0x38, 0x84, 0xe8, 0xde);                  
+        public static Guid IID_ICLRMetaHostPolicy = new Guid(0xE2190695, 0x77B2, 0x492e, 0x8E, 0x14, 0xC4, 0xB3, 0xA7, 0xFD, 0xD5, 0x93);           
+        public static Guid CLSID_CLRMetaHostPolicy = new Guid(0x2ebcd49a, 0x1b47, 0x4a61, 0xb1, 0x3a, 0x4a, 0x3, 0x70, 0x1e, 0x59, 0x4b);           
+        public static Guid IID_ICLRDebugging = new Guid(0xd28f3c5a, 0x9634, 0x4206, 0xa5, 0x9, 0x47, 0x75, 0x52, 0xee, 0xfb, 0x10);                 
+        public static Guid CLSID_CLRDebugging = new Guid(0xbacc578d, 0xfbdd, 0x48a4, 0x96, 0x9f, 0x2, 0xd9, 0x32, 0xb7, 0x46, 0x34);                
+        public static Guid IID_ICLRRuntimeInfo = new Guid(0xBD39D1D2, 0xBA2F, 0x486a, 0x89, 0xB0, 0xB4, 0xB0, 0xCB, 0x46, 0x68, 0x91);              
+        public static Guid IID_ICLRStrongName = new Guid(0x9FD93CCF, 0x3280, 0x4391, 0xB3, 0xA9, 0x96, 0xE1, 0xCD, 0xE7, 0x7C, 0x8D);               
+        public static Guid IID_ICLRStrongName2 = new Guid(0xC22ED5C5, 0x4B59, 0x4975, 0x90, 0xEB, 0x85, 0xEA, 0x55, 0xC0, 0x06, 0x9B);              
+        public static Guid IID_ICLRStrongName3 = new Guid(0x22c7089b, 0xbbd3, 0x414a, 0xb6, 0x98, 0x21, 0x0f, 0x26, 0x3f, 0x1f, 0xed);              
+        public static Guid CLSID_CLRDebuggingLegacy = new Guid(0xDF8395B5, 0xA4BA, 0x450b, 0xA7, 0x7C, 0xA9, 0xA4, 0x77, 0x62, 0xC5, 0x20);         
+        public static Guid CLSID_CLRProfiling = new Guid(0xbd097ed8, 0x733e, 0x43fe, 0x8e, 0xd7, 0xa9, 0x5f, 0xf9, 0xa8, 0x44, 0x8c);               
+        public static Guid IID_ICLRProfiling = new Guid(0xb349abe3, 0xb56f, 0x4689, 0xbf, 0xcd, 0x76, 0xbf, 0x39, 0xd8, 0x88, 0xea);                
+        public static Guid IID_ICLRDebuggingLibraryProvider = new Guid(0x3151c08d, 0x4d09, 0x4f9b, 0x88, 0x38, 0x28, 0x80, 0xbf, 0x18, 0xfe, 0x51);
+
         public const int PAGE_EXECUTE = 0x10;
         public const int PAGE_EXECUTE_READ = 0X20;
         public const int PAGE_EXECUTE_READWRITE = 0X40;
@@ -227,19 +300,9 @@ namespace Gleee.Win32
         public static IntPtr HWND_TOPMOST = new IntPtr(-1);
         public static IntPtr HWND_NOTOPMOST = new IntPtr(-2);
     }
-    public static class Struct
+
+    public static class Win32ExtensionMethods
     {
-        [StructLayout(LayoutKind.Sequential)]
-        public struct Rect
-        {
-            public int Left, Top, Right, Bottom;
-        }
-        [StructLayout(LayoutKind.Sequential)]
-        public struct ModuleInfo
-        {
-            public IntPtr lpBaseOfDll;
-            public int SizeOfImage;
-            public IntPtr EntryPoint;
-        }
+        public static string ToHexString32(this IntPtr ptr) => "0x" + ptr.ToString("x8");
     }
 }
